@@ -21,7 +21,6 @@ for (let i = 0,len = bookData.length; i < len; i += 1) {
             word = word.toLowerCase();
             startWordIndex = undefined;
             if (stopWords.indexOf(word) === -1 && word.length > 1) {
-                // 如果不在助词中
                 let found = false;
                 let pairIndex = 0;
                 for (let j = 0, fLen = wordFregs.length;j < fLen; j += 1) {
