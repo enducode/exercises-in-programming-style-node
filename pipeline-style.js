@@ -2,12 +2,12 @@ const fs = require('fs');
 
 function readFileData(filePath) {
     let data = fs.readFileSync(filePath, 'utf8');
-    return Promise.resolve(data);
+    return data;
 }
 
 function filterChars(data) {
     data = data.replace(/\s+/g, ' ').replace(/[^0-9a-zA-Z]/g, ' ');
-    return Promise.resolve(data);
+    return data;
 }
 
 function scanAndNormalize(data) {
@@ -15,7 +15,7 @@ function scanAndNormalize(data) {
     for (let i = 0,len = words.length; i < len; i += 1) {
         words[i] = words[i].toLowerCase();
     }
-    return Promise.resolve(words);
+    return words;
 }
 
 function removeStopWords(words) {
@@ -31,51 +31,50 @@ function removeStopWords(words) {
         i = i - index;
         words.splice(i, 1);
     });
-    return Promise.resolve(words);
+    return words;
 }
 
 function frequencies() {
-    let wordFreqs = {};
+    let wordFreqs = [];
     for (let i = 0,len = words.length; i < len; i += 1) {
-        if (wordFreqs[words[i]] !== undefined) {
-            wordFreqs[words[i]] += 1;
+        let word = words[i];
+        let keys = wordFreqs.map((v) => {
+            if (v[0]) {
+                return v[0];
+            }
+        });
+        if (keys.indexOf(word) !== -1) {
+            wordFreqs[keys.indexOf(word)][1] += 1;
         } else {
-            wordFreqs[words[i]] = 0;
+            wordFreqs.push([word, 1]);
         }
     }
-    return Promise.resolve(wordFreqs);
+    return wordFreqs;
 }
 
 function sort(wordFreqs) {
-    let wordFreqsKey = [];
-    wordFreqsKey = Object.keys(wordFreqs).sort((a, b) => {
-        return wordFreqs[a] - wordFreqs[b];
+    return wordFreqs.sort((a, b) => {
+        return b[1] - a[1];
     });
-    return Promise.resolve(wordFreqsKey);
 }
 
-function outputFront25(wordFreqs, wordFreqsKey) {
-    let len = wordFreqsKey.length;
+function outputFront25(wordFreqs) {
+    let len = wordFreqs.length;
     for (let i = 0; i < 25; i += 1) {
-        console.log(wordFreqsKey[len - i -1], '--', wordFreqs[wordFreqsKey[len - i -1]]);
+        console.log(wordFreqs[i][0], '--', wordFreqs[i][1]);
     }
 }
 
-readFileData('./pride-and-prejudice.txt')
-.then((data) => {
-    filterChars(data).then((data) => {
-        scanAndNormalize(data)
-        .then((words) => {
-            removeStopWords(words)
-            .then((words) => {
-                frequencies(words)
-                .then((wordFreqs) => {
-                    sort(wordFreqs)
-                    .then((wordFreqsKey) => {
-                        outputFront25(wordFreqs, wordFreqsKey);
-                    });
-                });
-            });
-        });
-    });
-});
+outputFront25(
+    sort(
+        frequencies(
+            removeStopWords(
+                scanAndNormalize(
+                    filterChars(
+                        readFileData('./pride-and-prejudice.txt')
+                    )
+                )
+            )
+        )
+    )
+)
